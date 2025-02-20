@@ -8,7 +8,16 @@ Provides a set of benchmark systems for testing the performance of the classical
 
 
 def load_data(name: str, n_samples: int = 10) -> tuple:
-    # Loads pre-defined data sets.
+    """
+    Loads pre-defined data sets.
+
+    Args:
+        name (str): The name of the data set to load.
+        num_samples (int): The number of samples to generate.
+
+    Returns:
+        tuple: A tuple containing the training and testing data sets.
+    """
 
     if name == "lorenz":
         x, y = generate_lorenz_data(n_samples=n_samples)
@@ -20,8 +29,13 @@ def load_data(name: str, n_samples: int = 10) -> tuple:
         x, y = generate_narma_data(n_samples=n_samples, order=10)
     elif name == "narma15":
         x, y = generate_narma_data(n_samples=n_samples, order=15)
+    elif name == "sincos":
+        x, y = generate_sincos_data(n_samples=n_samples, order=1)
+    elif name == "sincos3":
+        x, y = generate_sincos_data(n_samples=n_samples, order=3)
+
     else:
-        raise (ValueError("Invalid data set name"))
+        raise ValueError("Invalid data set name")
 
     # Split the data into training and testing sets
     x_train, y_train, x_test, y_test = split_data(x, y, train_size=0.8)
@@ -54,6 +68,19 @@ def split_data(
 
 
 def generate_lorenz_data(n_samples: int) -> tuple:
+    """
+    Generates the Lorenz attractor time series data.
+    Args:
+        n_samples (int): Number of samples representing different initial conditions for which a fixed number of time steps are simulated.
+    Returns:
+        tuple: A tuple containing two 3-dimensional numpy arrays:
+            - x: Inputs representing the system state at time t with shape [n_samples, n_time_steps, n_features].
+            - y: Outputs representing the system state at time t+1 with shape [n_samples, n_time_steps, n_features].
+    Notes:
+        - The Lorenz system parameters are sigma=10, beta=8/3, and rho=28.
+        - The time vector is generated with a time step of 0.02 and spans 3001 steps.
+        - The shapes of the return arrays are [n_samples, n_time_steps, n_features], where n_features=3 and n_time_steps=3,000.
+    """
     # Generates the Lorenz attractor time series.
 
     # Splits the data according to the following logic:
@@ -68,7 +95,8 @@ def generate_lorenz_data(n_samples: int) -> tuple:
     sigma, beta, rho = 10, 8 / 3, 28
 
     # time vector
-    t = np.arange(0, 60, 0.02)
+    dt = 0.02
+    t = np.arange(0, 3001 * dt, dt)
 
     x, y = [], []
 
@@ -115,7 +143,8 @@ def generate_vdp_data(n_samples: int) -> tuple:
     mu = 1.0
 
     # time vector
-    t = np.arange(0, 200, 0.1)
+    dt = 0.1
+    t = np.arange(0, 2000 * dt + dt, dt)
 
     x, y = [], []
 
@@ -148,7 +177,7 @@ def van_der_pol(x: np.ndarray, t: np.ndarray, mu: float):
 
 def generate_narma_data(n_samples: int, order: int) -> tuple:
 
-    length = 2500
+    length = 2501
 
     x, y = [], []
 
@@ -198,9 +227,52 @@ def narma(u: np.ndarray, order: int):
     return y
 
 
+def generate_sincos_data(n_samples: int, order: int) -> tuple:
+    length = 3000
+    dt = 0.1
+    t = np.arange(0, length * dt, dt)
+
+    if order == 1:
+        omega = 1.0
+        a_sin = 1.0
+        p_sin = 1.0
+        b_cos = 1.0
+        p_cos = 1.0
+    elif order == 3:
+        omega = 1.0
+        a_sin = 1.0
+        p_sin = 1.0
+        b_cos = 0.25
+        p_cos = 3.0
+    else:
+        raise ValueError("Invalid order for sincos data generation")
+
+    x, y = [], []
+
+    for _ in range(n_samples):
+
+        # draw random phase
+        phi = np.random.uniform(0, 2 * np.pi)
+
+        # inputs: A*sin(omega*t + phi)**p_sin,
+        # outputs: B*cos(omega*t + phi)**p_cos
+        x.append(
+            np.expand_dims(a_sin * (np.sin(omega * t + phi) ** p_sin), axis=(0, -1))
+        )
+        y.append(
+            np.expand_dims(b_cos * (np.cos(omega * t + phi) ** p_cos), axis=(0, -1))
+        )
+
+    # stack the data into a 3-dimensional array
+    x = np.vstack(x)
+    y = np.vstack(y)
+
+    return (x, y)
+
+
 if __name__ == "__main__":
 
-    datasets = ["lorenz", "vdp", "narma5", "narma10", "narma15"]
+    datasets = ["sincos", "sincos3", "lorenz", "vdp", "narma5", "narma10", "narma15"]
     n_samples = 20
     for dataset in datasets:
         x_train, y_train, x_test, y_test = load_data(name=dataset, n_samples=n_samples)
