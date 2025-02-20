@@ -81,15 +81,12 @@ def generate_lorenz_data(n_samples: int) -> tuple:
         - The time vector is generated with a time step of 0.02 and spans 3001 steps.
         - The shapes of the return arrays are [n_samples, n_time_steps, n_features], where n_features=3 and n_time_steps=3,000.
     """
-    # Generates the Lorenz attractor time series.
 
     # Splits the data according to the following logic:
     # Inputs x: system state at time t: [x(t), y(t), z(t)]
     # Outputs y: system state at time t+1: [x(t+1), y(t+1), z(t+1)]
 
     # Number of samples represents different initial conditions for which a fixed number of time steps are simulated
-
-    # Shapes of return arrays is 3-dimensional: [n_samples, n_time_steps, n_features], where n_features = 3 and n_time_steps = 10,000
 
     # Lorenz system parameters
     sigma, beta, rho = 10, 8 / 3, 28

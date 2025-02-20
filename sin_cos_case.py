@@ -48,7 +48,7 @@ output_shape = y_train.shape[1:]
 Loop over many RC models for the same parameters and the same data
 """
 
-num_trials = 50
+num_trials = 10000
 
 # store models, scores, properties
 models, scores, model_props = [], [], []
@@ -130,11 +130,13 @@ Comparison of pruned RC with the classical model
 # plt.show()
 
 
+# todo: truncate violins at zero
 plt.figure()  # Violin plot of the scores array
 sns.violinplot(data=scores, color="#457B9D")
 plt.xlabel("Model")
 plt.ylabel("MSE")
 plt.title("Distribution of test set scores")
+plt.savefig("random_model_scores.pdf")
 plt.show()
 
 # 2. Improvements in the scores due to pruning
