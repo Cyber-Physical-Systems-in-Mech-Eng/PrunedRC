@@ -7,19 +7,19 @@ Provides a set of benchmark systems for testing the performance of the classical
 """
 
 
-def load_data(name: str) -> tuple:
+def load_data(name: str, n_samples: int = 10) -> tuple:
     # Loads pre-defined data sets.
 
     if name == "lorenz":
-        x, y = generate_lorenz_data(n_samples=10)
+        x, y = generate_lorenz_data(n_samples=n_samples)
     elif name == "vdp":
-        x, y = generate_vdp_data(n_samples=10)
+        x, y = generate_vdp_data(n_samples=n_samples)
     elif name == "narma5":
-        x, y = generate_narma_data(n_samples=10, order=5)
+        x, y = generate_narma_data(n_samples=n_samples, order=5)
     elif name == "narma10":
-        x, y = generate_narma_data(n_samples=10, order=10)
+        x, y = generate_narma_data(n_samples=n_samples, order=10)
     elif name == "narma15":
-        x, y = generate_narma_data(n_samples=10, order=15)
+        x, y = generate_narma_data(n_samples=n_samples, order=15)
     else:
         raise (ValueError("Invalid data set name"))
 
@@ -68,7 +68,7 @@ def generate_lorenz_data(n_samples: int) -> tuple:
     sigma, beta, rho = 10, 8 / 3, 28
 
     # time vector
-    t = np.arange(0, 100, 0.01)
+    t = np.arange(0, 60, 0.02)
 
     x, y = [], []
 
@@ -78,43 +78,6 @@ def generate_lorenz_data(n_samples: int) -> tuple:
 
         # solve the system
         sol = odeint(lorenz, x0, t, args=(sigma, beta, rho))
-
-        # extract inputs (state at time t) and outputs (state at time t+1)
-        x.append(np.expand_dims(sol[:-1], axis=0))
-        y.append(np.expand_dims(sol[1:], axis=0))
-
-    # stack the data into a 3-dimensional array
-    x = np.vstack(x)
-    y = np.vstack(y)
-
-    return (x, y)
-
-
-def generate_vdp_data(n_samples: int) -> tuple:
-    # Generates the van der Pol system time series.
-
-    # Splits the data according to the following logic:
-    # Inputs x: system state at time t: [x(t), y(t)]
-    # Outputs y: system state at time t+1: [x(t+1), y(t+1)]
-
-    # Number of samples represents different initial conditions for which a fixed number of time steps are simulated
-
-    # Shapes of return arrays is 3-dimensional: [n_samples, n_time_steps, n_features], where n_features = 2 and n_time_steps = 10,000
-
-    # van der Pol system parameters
-    mu = 1.0
-
-    # time vector
-    t = np.arange(0, 100, 0.01)
-
-    x, y = [], []
-
-    for _ in range(n_samples):
-        # sample initial condition from random normal distribution
-        x0 = np.random.rand(2)
-
-        # solve the system
-        sol = odeint(van_der_pol, x0, t, args=(mu,))
 
         # extract inputs (state at time t) and outputs (state at time t+1)
         x.append(np.expand_dims(sol[:-1], axis=0))
@@ -137,6 +100,43 @@ def lorenz(x: np.ndarray, t: np.ndarray, sigma: float, beta: float, rho: float):
     return np.array([x_dot, y_dot, z_dot])
 
 
+def generate_vdp_data(n_samples: int) -> tuple:
+    # Generates the van der Pol system time series.
+
+    # Splits the data according to the following logic:
+    # Inputs x: system state at time t: [x(t), y(t)]
+    # Outputs y: system state at time t+1: [x(t+1), y(t+1)]
+
+    # Number of samples represents different initial conditions for which a fixed number of time steps are simulated
+
+    # Shapes of return arrays is 3-dimensional: [n_samples, n_time_steps, n_features], where n_features = 2 and n_time_steps = 10,000
+
+    # van der Pol system parameters
+    mu = 1.0
+
+    # time vector
+    t = np.arange(0, 200, 0.1)
+
+    x, y = [], []
+
+    for _ in range(n_samples):
+        # sample initial condition from random normal distribution
+        x0 = np.random.rand(2)
+
+        # solve the system
+        sol = odeint(van_der_pol, x0, t, args=(mu,))
+
+        # extract inputs (state at time t) and outputs (state at time t+1)
+        x.append(np.expand_dims(sol[:-1], axis=0))
+        y.append(np.expand_dims(sol[1:], axis=0))
+
+    # stack the data into a 3-dimensional array
+    x = np.vstack(x)
+    y = np.vstack(y)
+
+    return (x, y)
+
+
 def van_der_pol(x: np.ndarray, t: np.ndarray, mu: float):
     # ODE definition of the Van der Pol oscillator
 
@@ -146,7 +146,34 @@ def van_der_pol(x: np.ndarray, t: np.ndarray, mu: float):
     return np.array([x_dot, y_dot])
 
 
+def generate_narma_data(n_samples: int, order: int) -> tuple:
+
+    length = 2500
+
+    x, y = [], []
+
+    for _ in range(n_samples):
+
+        # input sequence
+        u = np.random.uniform(0, 0.5, size=length)  # Input sequence
+
+        # generate NARMA sequence
+        sol = narma(u, order)
+
+        # extract inputs (state at time t) and outputs (state at time t+1)
+        x.append(np.expand_dims(sol[:-1], axis=(0, -1)))
+        y.append(np.expand_dims(sol[1:], axis=(0, -1)))
+
+    # stack the data into a 3-dimensional array
+    x = np.vstack(x)
+    y = np.vstack(y)
+
+    return (x, y)
+
+
 def narma(u: np.ndarray, order: int):
+    # u is the input sequence, typically random numbers [0, 0.5]
+    # order is the order of the NAR
 
     # initialize the output array
     y = np.zeros(u.shape[0])
@@ -171,39 +198,11 @@ def narma(u: np.ndarray, order: int):
     return y
 
 
-def generate_narma_data(n_samples: int, order: int) -> tuple:
-
-    length = 1000
-
-    x, y = [], []
-
-    for _ in range(n_samples):
-
-        # input sequence
-        u = np.random.uniform(0, 0.5, size=length)  # Input sequence
-
-        # generate NARMA sequence
-        sol = narma(u, order)
-
-        # extract inputs (state at time t) and outputs (state at time t+1)
-        x.append(np.expand_dims(sol[:-1], axis=(0, -1)))
-        y.append(np.expand_dims(sol[1:], axis=(0, -1)))
-
-    # stack the data into a 3-dimensional array
-    x = np.vstack(x)
-    y = np.vstack(y)
-
-    return (x, y)
-
-    x = 5
-    y = 5
-    return (x, y)
-
-
 if __name__ == "__main__":
 
-    datasets = ["lorenz", "vdp", "narma10", "narma15"]
+    datasets = ["lorenz", "vdp", "narma5", "narma10", "narma15"]
+    n_samples = 20
     for dataset in datasets:
-        x_train, y_train, x_test, y_test = load_data(name=dataset)
+        x_train, y_train, x_test, y_test = load_data(name=dataset, n_samples=n_samples)
         print(f"shape of {dataset} system input data: {x_train.shape}")
-        print(f"shape of {dataset} system output data: {y_train.shape}")
+        print(f"shape of {dataset} system output data: {y_train.shape}\n")
