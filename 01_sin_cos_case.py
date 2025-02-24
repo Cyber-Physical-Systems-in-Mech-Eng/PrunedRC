@@ -4,7 +4,10 @@ from matplotlib import pyplot as plt
 from benchmark_systems import load_data
 from helpers_models import build_RC_model
 
-# Generate a simple case for the sin-cos system: x: sin(t), y: cos(t)
+
+"""
+Simple case for the sin-cos system: input: sin(t), output: cos(t)
+"""
 
 # load data
 x_train, y_train, x_test, y_test = load_data(name="sincos", n_samples=10)
