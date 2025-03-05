@@ -1,5 +1,7 @@
 import numpy as np
 import itertools
+import pickle
+import matplotlib.pyplot as plt
 from benchmark_systems import load_data
 
 from pyreco.custom_models import RC
@@ -21,11 +23,11 @@ hp = {
     "nodes": np.arange(50, 201, 25).astype(int),
     "leakage_rate": np.arange(0.1, 1, 0.1),
     "density": np.arange(0.1, 0.8, 0.1),
-    "activation": ["tanh"],
+    "activation": ["tanh", "sigmoid"],
     "fraction_input": [0.5],
     "fraction_output": [0.5],
     "metric": ["mse"],
-    "transients": [10],
+    "transients": [50],
 }
 
 # create search grid: all possible combinations of hyperparameters
@@ -35,9 +37,6 @@ hp_combinations = [dict(zip(keys, v)) for v in itertools.product(*values)]
 print(f"Number of hyperparameter combinations: {len(hp_combinations)}")
 
 # loop over all possible combinations and obtain cross-validated model score
-mean_scores = []
-std_scores = []
-
 for i, _config in enumerate(hp_combinations):
     print(f"Combination {i+1}/{len(hp_combinations)}: {_config}")
 
@@ -48,9 +47,8 @@ for i, _config in enumerate(hp_combinations):
     _val, _mean, _std_dev = cross_val(
         _model, x_train, y_train, n_splits=5, metric=["mse"]
     )
-    mean_scores.append(_mean)
-    std_scores.append(_std_dev)
 
+    # update hyperparameter dictionary
     hp_combinations[i]["mean_score"] = _mean
     hp_combinations[i]["std_score"] = _std_dev
 
@@ -58,8 +56,6 @@ for i, _config in enumerate(hp_combinations):
 
 
 # save results to file
-import pickle
-
 with open("hyperparameter_search_narma5.pkl", "wb") as f:
     pickle.dump(hp_combinations, f)
 
@@ -81,24 +77,30 @@ for _config in hp_combinations:
     leakage_list.append(_config["leakage_rate"])
     density_list.append(_config["density"])
 
-import matplotlib.pyplot as plt
+# Determine the y-axis limits
+y_min = min(score_list)
+y_max = max(score_list)
+
 
 plt.figure()
 plt.subplot(1, 3, 1)
 plt.scatter(node_list, score_list)
 plt.xlabel("Nodes")
 plt.ylabel("Mean loss")
-plt.title(f"best model: {hp_combinations[best_idx]}")
+plt.ylim(y_min, y_max)
 
 plt.subplot(1, 3, 2)
 plt.scatter(leakage_list, score_list)
 plt.xlabel("Leakage Rate")
 plt.ylabel("Mean loss")
+plt.title(f"best model: {hp_combinations[best_idx]}")
+plt.ylim(y_min, y_max)
 
 plt.subplot(1, 3, 3)
 plt.scatter(density_list, score_list)
 plt.xlabel("Density")
 plt.ylabel("Mean loss")
+plt.ylim(y_min, y_max)
 plt.tight_layout()
 plt.savefig("hyperparameter_search_narma5.png")
 plt.show()
