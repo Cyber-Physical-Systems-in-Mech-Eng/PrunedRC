@@ -1,0 +1,58 @@
+# AIP Journal Style for Matplotlib
+
+# Lines
+lines.linewidth: 1.5
+lines.color: black
+
+# Font
+font.family: sans-serif
+font.sans-serif: Arial, Helvetica
+font.size: 10
+
+# Axes
+axes.labelsize: 10
+axes.titlesize: 12
+axes.linewidth: 1
+axes.edgecolor: black
+axes.labelcolor: black
+axes.grid: False
+axes.grid.which: both
+#axes.grid.color: "#999999"
+axes.prop_cycle: cycler('color', ['060606', 'DA1B20', '003793', '823982', '8C8C8C'])
+
+# Ticks
+xtick.labelsize: 10
+ytick.labelsize: 10
+xtick.color: black
+ytick.color: black
+
+# Grid
+grid.color: "#CCCCCC"
+grid.linestyle: -
+
+# Legend
+legend.fontsize: 10
+legend.frameon: False
+legend.framealpha: 1
+legend.edgecolor: black
+
+# Colorbar
+#colorbar.tick.color: black
+#colorbar.tick.labelsize: medium
+
+# Savefig
+savefig.dpi: 300
+savefig.format: png
+savefig.bbox: tight
+savefig.pad_inches: 0.1
+
+# Image
+image.cmap: viridis
+image.interpolation: nearest
+image.resample: True
+
+# PDF
+pdf.fonttype: 42
+
+# PS
+ps.fonttype: 42
