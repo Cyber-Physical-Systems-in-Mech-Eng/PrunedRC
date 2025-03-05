@@ -152,8 +152,7 @@ def plot_property_histories(
 
 
 def plot_violin_comparison(
-    x1,
-    x2,
+    data: list,
     labels: list,
     quantity: str,
     cut_zero=True,
@@ -166,10 +165,13 @@ def plot_violin_comparison(
     else:
         cut = None
 
+    num_data = len(data)
+    color_palette = sns.color_palette("husl", num_data)
+
     fig = plt.figure()
     sns.violinplot(
-        data=[x1, x2],
-        palette=["#457B9D", "#E63946"],
+        data=data,
+        palette=color_palette,
         inner="quartiles",
         log_scale=False,
         cut=cut,
@@ -177,7 +179,7 @@ def plot_violin_comparison(
     )
     # plot a text box that reports the number of trials
     if display_trial_num:
-        num_trials = len(x1)
+        num_trials = len(data[0])
         plt.text(
             0.75,
             1.03,
@@ -189,6 +191,6 @@ def plot_violin_comparison(
             bbox=dict(facecolor="white", alpha=0.0, edgecolor="none"),
         )
     plt.ylabel(quantity.replace("_", " "))
-    plt.xticks([0, 1], labels)
+    plt.xticks(np.arange(len(data)), labels)
 
     return fig

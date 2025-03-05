@@ -8,9 +8,9 @@ from helpers_models import run_pruning_trials
 
 
 # Specify name of the file to store the results
-SAVE_NAME = "narma5.pkl"
+SAVE_NAME = "narma5_100_iters_from_100_init_nodes.pkl"
 SAVE_PATH = os.path.join(os.getcwd(), "stored_results", SAVE_NAME)
-NUM_TRIALS = 10  # how many models to build and prune
+NUM_TRIALS = 100  # how many models to build and prune
 
 if __name__ == "__main__":
     # NARMA-5 system
@@ -26,7 +26,7 @@ if __name__ == "__main__":
 
     # Define RC properties for the models that will later be pruned
     rc_config = {
-        "nodes": 50,  # number of reservoir nodes
+        "nodes": 100,  # number of reservoir nodes
         "density": 0.5,  # connection density in reservoir
         "activation": "tanh",  # activation function
         "fraction_input": 0.5,  # fraction of input-receiving nodes
@@ -43,7 +43,7 @@ if __name__ == "__main__":
     pruner = NetworkPruner(
         stop_at_minimum=True,
         min_num_nodes=2,
-        patience=3,
+        patience=5,
         candidate_fraction=0.25,
         metrics=["mse"],
         return_best_model=True,  # should always be True

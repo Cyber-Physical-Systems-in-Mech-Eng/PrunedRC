@@ -81,8 +81,7 @@ if __name__ == "__main__":
 
     # Violin plot for the scores and pruned scores
     fig = plot_violin_comparison(
-        scores,
-        scores_pruned,
+        data=[scores, scores_pruned],
         labels=["classic RC", "pruned RC"],
         quantity="loss",
     )
@@ -111,8 +110,7 @@ if __name__ == "__main__":
             prop_pruned.append(history["graph_props"][prop][-1])
 
         fig = plot_violin_comparison(
-            prop_initial,
-            prop_pruned,
+            data=[prop_initial, prop_pruned],
             labels=["classic RC", "pruned RC"],
             quantity=prop,
         )
