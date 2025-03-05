@@ -8,9 +8,9 @@ from helpers_models import run_pruning_trials
 
 
 # Specify name of the file to store the results
-SAVE_NAME = "narma5_100_iters_from_100_init_nodes.pkl"
+SAVE_NAME = "narma5_AA_100_iters.pkl"
 SAVE_PATH = os.path.join(os.getcwd(), "stored_results", SAVE_NAME)
-NUM_TRIALS = 100  # how many models to build and prune
+NUM_TRIALS = 500  # how many models to build and prune
 
 if __name__ == "__main__":
     # NARMA-5 system
@@ -26,14 +26,14 @@ if __name__ == "__main__":
 
     # Define RC properties for the models that will later be pruned
     rc_config = {
-        "nodes": 100,  # number of reservoir nodes
-        "density": 0.5,  # connection density in reservoir
+        "nodes": 50,  # number of reservoir nodes
+        "density": 0.1,  # connection density in reservoir
         "activation": "tanh",  # activation function
         "fraction_input": 0.5,  # fraction of input-receiving nodes
-        "fraction_output": 0.8,  # fraction of read-out nodes
+        "fraction_output": 0.5,  # fraction of read-out nodes
         "metric": "mse",  # mean squared error metric
         "transients": 50,  # discard the first 50 time steps
-        "leakage_rate": 0.1,  # leakage rate of the reservoir
+        "leakage_rate": 0.9,  # leakage rate of the reservoir
     }
 
     # define graph analyzer that will extract properties of the reservoir

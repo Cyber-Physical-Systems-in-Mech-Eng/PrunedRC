@@ -103,7 +103,7 @@ def build_RC_model(input_shape, output_shape, configuration: dict) -> RC:
     model.add(InputLayer(input_shape=input_shape))
     model.add(
         RandomReservoirLayer(
-            nodes=configuration["nodes"],
+            nodes=int(configuration["nodes"]),
             density=configuration["density"],
             activation=configuration["activation"],
             fraction_input=configuration["fraction_input"],
