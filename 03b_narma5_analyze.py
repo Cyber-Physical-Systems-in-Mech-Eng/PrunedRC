@@ -70,7 +70,7 @@ if __name__ == "__main__":
             savedir=FIGURE_PATH,
             style="presentation_2x3",
         )
-    # plt.show()
+    plt.show()
 
     """
     B: Comparison of pruned RC with the classical model
@@ -92,7 +92,7 @@ if __name__ == "__main__":
         savedir=FIGURE_PATH,
         style="presentation_2x3",
     )
-    # plt.show()
+    plt.show()
 
     # plot network properties comparing initial and pruned models as violin plots
     properties = [
@@ -123,13 +123,13 @@ if __name__ == "__main__":
             savedir=FIGURE_PATH,
             style="presentation_2x3",
         )
-    # plt.show()
+    plt.show()
 
     """
     C: Statistics of pruned nodes
     """
 
-    # was the pruned node an input-receiving one?
+    # was the pruned node an input-receiving / output sending one?
     is_input = []
     is_output = []
     for history in pruning_histories:
