@@ -7,6 +7,7 @@ from pyreco.optimizers import RidgeSK
 import time
 import pickle
 import copy
+from helpers import get_experiment_config
 
 
 def run_pruning_trials(
@@ -203,3 +204,21 @@ def prune_evaluate_model(
     )
 
     return model_pruned, score, graph_props, history
+
+
+def model_config_from_experiment(experiment_name: str) -> dict:
+
+    exp_dict = get_experiment_config(experiment_name)
+
+    config = {}
+    config["nodes"] = exp_dict["nodes"]
+    config["density"] = exp_dict["density"]
+    config["activation"] = exp_dict["activation"]
+    config["fraction_input"] = exp_dict["fraction_input"]
+    config["fraction_output"] = exp_dict["fraction_output"]
+    config["metric"] = "mse"
+    config["transients"] = 50
+    config["leakage_rate"] = exp_dict["leakage_rate"]
+    config["dataset"] = exp_dict["dataset"]
+
+    return config

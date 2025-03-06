@@ -4,7 +4,7 @@ import pickle
 from pyreco.pruning import NetworkPruner
 from pyreco.graph_analyzer import GraphAnalyzer
 
-from helpers_models import run_pruning_trials
+from helpers_models import run_pruning_trials, model_config_from_experiment
 
 
 # Parse command line arguments
@@ -20,9 +20,13 @@ TRIALS = args.trials
 SAVE_NAME = f"{CASE}_{TRIALS}_iters.pkl"
 SAVE_PATH = os.path.join(os.getcwd(), "stored_results", SAVE_NAME)
 
+# load experiment configuration
+# Define RC properties for the models that will later be pruned
+rc_config = model_config_from_experiment(experiment_name=CASE)
+dataset = rc_config["dataset"]
 
 # load pickled data from  local /data/ folder
-data_path = os.path.join(os.getcwd(), "data", f"{CASE}_data.pkl")
+data_path = os.path.join(os.getcwd(), "data", f"{dataset}_data.pkl")
 with open(data_path, "rb") as f:
     data = pickle.load(f)
     x_train, y_train, x_test, y_test = (
@@ -35,18 +39,6 @@ with open(data_path, "rb") as f:
 data_train = (x_train, y_train)
 data_test = (x_test, y_test)
 input_shape, output_shape = x_train.shape[1:], y_train.shape[1:]
-
-# Define RC properties for the models that will later be pruned
-rc_config = {
-    "nodes": 50,  # number of reservoir nodes
-    "density": 0.1,  # connection density in reservoir
-    "activation": "tanh",  # activation function
-    "fraction_input": 0.5,  # fraction of input-receiving nodes
-    "fraction_output": 0.5,  # fraction of read-out nodes
-    "metric": "mse",  # mean squared error metric
-    "transients": 50,  # discard the first 50 time steps
-    "leakage_rate": 0.9,  # leakage rate of the reservoir
-}
 
 # define graph analyzer that will extract properties of the reservoir
 graph_analyzer = GraphAnalyzer()
