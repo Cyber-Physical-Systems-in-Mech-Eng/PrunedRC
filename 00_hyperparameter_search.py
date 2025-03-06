@@ -65,24 +65,35 @@ if RUN_HYPERPARAMETER_SEARCH:
 
     # loop over all possible combinations and obtain cross-validated model score
     mean_scores = []
+    rem_idx = []
     for i, _config in enumerate(hp_combinations):
-        print(f"Combination {i+1}/{len(hp_combinations)}: {_config}")
 
-        # build reservoir computer
-        _model = build_RC_model(input_shape, output_shape, configuration=_config)
+        try:
+            print(f"Combination {i+1}/{len(hp_combinations)}: {_config}")
 
-        # cross-validate RC
-        _val, _mean, _std_dev = cross_val(
-            _model, x_train, y_train, n_splits=5, metric=["mse"]
-        )
+            # build reservoir computer
+            _model = build_RC_model(input_shape, output_shape, configuration=_config)
 
-        # update hyperparameter dictionary
-        hp_combinations[i]["mean_score"] = _mean
-        hp_combinations[i]["std_score"] = _std_dev
+            # cross-validate RC
+            _val, _mean, _std_dev = cross_val(
+                _model, x_train, y_train, n_splits=5, metric=["mse"]
+            )
 
-        mean_scores.append(_mean)
+            # update hyperparameter dictionary
+            hp_combinations[i]["mean_score"] = _mean
+            hp_combinations[i]["std_score"] = _std_dev
 
-        print(f"mean score: \t {_mean:.4f}, std dev: \t{_std_dev:.4f}\n")
+            mean_scores.append(_mean)
+
+            print(f"mean score: \t {_mean:.4f}, std dev: \t{_std_dev:.4f}\n")
+
+        except Exception as e:
+            print(f"Error: {e}")
+            rem_idx.append(i)
+
+    # in case there was some issue, remove the faulty hyperparameter combination
+    for i in rem_idx:
+        del hp_combinations[i]
 
     # save results to file
     path = os.path.join(
