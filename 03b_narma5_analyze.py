@@ -4,6 +4,7 @@ import os
 from matplotlib import pyplot as plt
 import pickle
 
+from helpers_models import model_config_from_experiment
 from cpsmehelper import export_figure
 from plotting import (
     plot_loss_histories,
@@ -16,10 +17,21 @@ from plotting import (
 plt.style.use(os.path.join(os.getcwd(), "AIP_journal.mplstyle"))
 FIGURE_PATH = os.path.join(os.getcwd(), "figures")
 
-# specify the path to the stored results (from corresponding ... _compute.py function)
-DATA_FILE = os.path.join(os.getcwd(), "stored_results", "narma5.pkl")
+# Select the case to analyse
+CASE = "N10A1"
+
 
 if __name__ == "__main__":
+
+    SAVE_NAME = f"{CASE}.pkl"
+    SAVE_PATH = os.path.join(os.getcwd(), "stored_results", SAVE_NAME)
+
+    # load experiment configuration
+    # Define RC properties for the models that will later be pruned
+    rc_config = model_config_from_experiment(experiment_name=CASE)
+    dataset = rc_config["dataset"]
+    identifier = rc_config["identifier"]
+    DATA_FILE = os.path.join(os.getcwd(), "stored_results", f"{CASE}.pkl")
 
     # load data
     with open(DATA_FILE, "rb") as file:
@@ -46,7 +58,7 @@ if __name__ == "__main__":
     fig = plot_loss_histories(pruning_histories, x_quantity="nodes")
     export_figure(
         fig=fig,
-        name="narma5_loss_histories.pdf",
+        name=f"{identifier}_loss_histories.pdf",
         savedir=FIGURE_PATH,
         style="presentation_2x3",
     )
@@ -66,7 +78,7 @@ if __name__ == "__main__":
         )
         export_figure(
             fig=fig,
-            name=f"narma5_{prop}_histories.pdf",
+            name=f"{identifier}_{prop}_histories.pdf",
             savedir=FIGURE_PATH,
             style="presentation_2x3",
         )
@@ -87,7 +99,7 @@ if __name__ == "__main__":
     )
     export_figure(
         fig=fig,
-        name="narma5_scores_comparison.pdf",
+        name=f"{identifier}_scores_comparison.pdf",
         savedir=FIGURE_PATH,
         style="presentation_2x3",
     )
@@ -117,7 +129,7 @@ if __name__ == "__main__":
 
         export_figure(
             fig=fig,
-            name=f"narma5_{prop}_comparison.pdf",
+            name=f"{identifier}_{prop}_comparison.pdf",
             savedir=FIGURE_PATH,
             style="presentation_2x3",
         )

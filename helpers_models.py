@@ -220,5 +220,6 @@ def model_config_from_experiment(experiment_name: str) -> dict:
     config["transients"] = 50
     config["leakage_rate"] = exp_dict["leakage_rate"]
     config["dataset"] = exp_dict["dataset"]
+    config["identifier"] = exp_dict["identifier"]
 
     return config

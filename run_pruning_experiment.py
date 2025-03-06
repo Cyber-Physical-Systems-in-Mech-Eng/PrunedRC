@@ -17,7 +17,7 @@ args = parser.parse_args()
 CASE = args.case
 TRIALS = args.trials
 
-SAVE_NAME = f"{CASE}_{TRIALS}_iters.pkl"
+SAVE_NAME = f"{CASE}.pkl"
 SAVE_PATH = os.path.join(os.getcwd(), "stored_results", SAVE_NAME)
 
 # load experiment configuration
@@ -45,7 +45,7 @@ graph_analyzer = GraphAnalyzer()
 
 # define RC network pruner and relevant properties
 pruner = NetworkPruner(
-    stop_at_minimum=True,
+    stop_at_minimum=False,
     min_num_nodes=15,
     patience=5,
     candidate_fraction=0.25,

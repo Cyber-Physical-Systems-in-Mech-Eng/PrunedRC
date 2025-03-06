@@ -48,8 +48,8 @@ if RUN_HYPERPARAMETER_SEARCH:
     # define hyperparameters and their search space
     hp = {
         "nodes": np.arange(25, 101, 25).astype(int),
-        "leakage_rate": np.arange(0.1, 1, 0.05),
-        "density": np.arange(0.05, 0.25, 0.1),
+        "leakage_rate": np.arange(0.1, 0.951, 0.05),
+        "density": np.arange(0.05, 0.251, 0.1),
         "activation": ["tanh", "sigmoid"],
         "fraction_input": [0.5],
         "fraction_output": [0.5],
