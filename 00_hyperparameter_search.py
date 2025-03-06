@@ -90,10 +90,16 @@ if RUN_HYPERPARAMETER_SEARCH:
         except Exception as e:
             print(f"Error: {e}")
             rem_idx.append(i)
+            hp_combinations[i]["mean_score"] = None
+            hp_combinations[i]["std_score"] = None
 
     # in case there was some issue, remove the faulty hyperparameter combination
-    for i in rem_idx:
-        del hp_combinations[i]
+    # delete all entries in hp_combinations that have None as mean_score
+    hp_combinations = [
+        hp_combinations[i]
+        for i, combo in enumerate(hp_combinations)
+        if combo["mean_score"] is not None
+    ]
 
     # save results to file
     path = os.path.join(
