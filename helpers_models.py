@@ -3,6 +3,7 @@ from pyreco.layers import InputLayer, ReadoutLayer
 from pyreco.layers import RandomReservoirLayer
 from pyreco.graph_analyzer import GraphAnalyzer
 from pyreco.pruning import NetworkPruner
+from pyreco.optimizers import RidgeSK
 import time
 import pickle
 import copy
@@ -113,8 +114,9 @@ def build_RC_model(input_shape, output_shape, configuration: dict) -> RC:
     model.add(ReadoutLayer(output_shape, fraction_out=configuration["fraction_output"]))
 
     # compile the model
+    optimizer = RidgeSK(alpha=1e-6)
     model.compile(
-        optimizer="ridge",
+        optimizer=optimizer,
         metrics=configuration["metric"],
         discard_transients=configuration["transients"],
     )

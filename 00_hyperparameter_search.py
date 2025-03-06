@@ -1,71 +1,127 @@
+"""
+Cross-validated hyperparameter grid-search for the RC model.
+
+Should be run from command line with the following command:
+python 00_hyperparameter_search.py --case narma5
+"""
+
 import numpy as np
 import itertools
+import os
 import pickle
 import matplotlib.pyplot as plt
-from benchmark_systems import load_data
-
-from pyreco.custom_models import RC
-from pyreco.layers import InputLayer, ReadoutLayer
-from pyreco.layers import RandomReservoirLayer
+from mpl_toolkits.mplot3d import Axes3D
 from pyreco.cross_validation import cross_val
-
 from helpers_models import build_RC_model
 
-# load data
-x_train, y_train, x_test, y_test = load_data(name="narma5", n_samples=10)
+import argparse
+
+# Parse command line arguments
+parser = argparse.ArgumentParser(description="Hyperparameter search for RC model")
+parser.add_argument("--case", type=str, required=True, help="Case study name")
+args = parser.parse_args()
+
+# define the case study
+CASE = args.case
+
+# whether to run the hyperparameter study or just analyse results
+RUN_HYPERPARAMETER_SEARCH = True
+
+# load pickled data from  local /data/ folder
+data_path = os.path.join(os.getcwd(), "data", f"{CASE}_data.pkl")
+with open(data_path, "rb") as f:
+    data = pickle.load(f)
+    x_train, y_train, x_test, y_test = (
+        data[0],
+        data[1],
+        data[2],
+        data[3],
+    )
+
 data_train = (x_train, y_train)
 data_test = (x_test, y_test)
 
 input_shape, output_shape = x_train.shape[1:], y_train.shape[1:]
 
-# define hyperparameters and their search space
-hp = {
-    "nodes": np.arange(50, 201, 25).astype(int),
-    "leakage_rate": np.arange(0.1, 1, 0.1),
-    "density": np.arange(0.1, 0.8, 0.1),
-    "activation": ["tanh", "sigmoid"],
-    "fraction_input": [0.5],
-    "fraction_output": [0.5],
-    "metric": ["mse"],
-    "transients": [50],
-}
 
-# create search grid: all possible combinations of hyperparameters
-# Generate all possible combinations
-keys, values = zip(*hp.items())
-hp_combinations = [dict(zip(keys, v)) for v in itertools.product(*values)]
-print(f"Number of hyperparameter combinations: {len(hp_combinations)}")
+if RUN_HYPERPARAMETER_SEARCH:
+    # define hyperparameters and their search space
+    hp = {
+        "nodes": np.arange(25, 101, 25).astype(int),
+        "leakage_rate": np.arange(0.1, 1, 0.05),
+        "density": np.arange(0.05, 0.25, 0.1),
+        "activation": ["tanh", "sigmoid"],
+        "fraction_input": [0.5],
+        "fraction_output": [0.5],
+        "metric": ["mse"],
+        "transients": [50],
+    }
 
-# loop over all possible combinations and obtain cross-validated model score
-for i, _config in enumerate(hp_combinations):
-    print(f"Combination {i+1}/{len(hp_combinations)}: {_config}")
+    # create search grid: all possible combinations of hyperparameters
+    # Generate all possible combinations
+    keys, values = zip(*hp.items())
+    hp_combinations = [dict(zip(keys, v)) for v in itertools.product(*values)]
+    print(f"Number of hyperparameter combinations: {len(hp_combinations)}")
 
-    # build reservoir computer
-    _model = build_RC_model(input_shape, output_shape, configuration=_config)
+    # loop over all possible combinations and obtain cross-validated model score
+    mean_scores = []
+    for i, _config in enumerate(hp_combinations):
+        print(f"Combination {i+1}/{len(hp_combinations)}: {_config}")
 
-    # cross-validate RC
-    _val, _mean, _std_dev = cross_val(
-        _model, x_train, y_train, n_splits=5, metric=["mse"]
+        # build reservoir computer
+        _model = build_RC_model(input_shape, output_shape, configuration=_config)
+
+        # cross-validate RC
+        _val, _mean, _std_dev = cross_val(
+            _model, x_train, y_train, n_splits=5, metric=["mse"]
+        )
+
+        # update hyperparameter dictionary
+        hp_combinations[i]["mean_score"] = _mean
+        hp_combinations[i]["std_score"] = _std_dev
+
+        mean_scores.append(_mean)
+
+        print(f"mean score: \t {_mean:.4f}, std dev: \t{_std_dev:.4f}\n")
+
+    # save results to file
+    path = os.path.join(
+        os.getcwd(), "stored_results", f"hyperparameter_search_{CASE}.pkl"
     )
-
-    # update hyperparameter dictionary
-    hp_combinations[i]["mean_score"] = _mean
-    hp_combinations[i]["std_score"] = _std_dev
-
-    print(f"mean score: \t {_mean:.4f}, std dev: \t{_std_dev:.4f}\n")
+    with open(path, "wb") as f:
+        pickle.dump(hp_combinations, f)
 
 
-# save results to file
-with open("hyperparameter_search_narma5.pkl", "wb") as f:
-    pickle.dump(hp_combinations, f)
+else:  # load hyperparameter study results
 
-# find best hyperparameters
+    # load pickled results
+    path = os.path.join(
+        os.getcwd(), "stored_results", f"hyperparameter_search_{CASE}.pkl"
+    )
+    with open(path, "rb") as f:
+        hp_combinations = pickle.load(f)
+
+    # extract mean scores
+    mean_scores = [c["mean_score"] for c in hp_combinations]
+
+
+# find best set of hyperparameters
 best_idx = np.argmin(mean_scores)
+print("\n\nBest hyperparameters:")
+for key in hp_combinations[best_idx].keys():
+    print(f"{key}: \t{hp_combinations[best_idx][key]}")
 
-print(f"\n\nBest hyperparameters: {hp_combinations[best_idx]}\n\n")
+# obtain top 3 hyperparameter combinations
+top_3_idx = np.argsort(mean_scores)[:3]
+print("\nTop 3 hyperparameters:")
+for key in hp_combinations[best_idx].keys():
+    print_str = []
+    for idx in top_3_idx:
+        print_str.append(hp_combinations[idx][key])
+    print(f"{key}: \t{print_str}")
 
 
-# some analysis of the results - are there global trends?
+# some analysis of the results - are there global trends observable?
 node_list = []
 score_list = []
 leakage_list = []
@@ -78,9 +134,8 @@ for _config in hp_combinations:
     density_list.append(_config["density"])
 
 # Determine the y-axis limits
-y_min = min(score_list)
-y_max = max(score_list)
-
+y_min = min(score_list) * 0.9
+y_max = max(score_list) * 1.1
 
 plt.figure()
 plt.subplot(1, 3, 1)
@@ -102,5 +157,78 @@ plt.xlabel("Density")
 plt.ylabel("Mean loss")
 plt.ylim(y_min, y_max)
 plt.tight_layout()
-plt.savefig("hyperparameter_search_narma5.png")
-plt.show()
+plt.savefig(os.path.join(os.getcwd(), "figures", f"hyperparameter_search_{CASE}.png"))
+# plt.show()
+plt.close()
+
+# # 3d scatter plot with score as color code
+# fig = plt.figure()
+# ax = fig.add_subplot(111, projection="3d")
+# ax.scatter(node_list, leakage_list, density_list, c=score_list)
+# # add colorbar
+# cbar = plt.colorbar(ax.scatter(node_list, leakage_list, density_list, c=score_list))
+# cbar.set_label("Mean loss")
+# ax.set_xlabel("Nodes")
+# ax.set_ylabel("Leakage Rate")
+# ax.set_zlabel("Density")
+# # plt.savefig("hyperparameter_search_narma5_3D.png")
+# plt.show()
+
+
+# export to LaTeX table
+
+# remove the metric and transients keys from the hyperparameter combinations
+for i, _ in enumerate(hp_combinations):
+    del hp_combinations[i]["metric"]
+    del hp_combinations[i]["transients"]
+
+print("\n\nLaTeX table:\n")
+# Obtain the column names from the keys of the hp combinations dictionaries
+column_names = [key.replace("_", " ").lower() for key in hp_combinations[0].keys()]
+
+# Print the column names for the LaTeX table
+print(" & ".join(column_names) + " \\\\")
+top_10_idx = np.argsort(mean_scores)[:10]
+for idx in top_10_idx:
+    print_str = []
+    for key in hp_combinations[idx].keys():
+        print_str.append(hp_combinations[idx][key])
+    print(
+        " & ".join(
+            [
+                (
+                    f"{x:.5f}"
+                    if key in ["mean_score", "std_score"]
+                    else f"{x:.1f}" if isinstance(x, float) else str(x)
+                )
+                for key, x in zip(hp_combinations[idx].keys(), print_str)
+            ]
+        )
+        + " \\\\"
+    )
+print("\n\n")
+
+# print the latex table to a txt file
+with open(
+    os.path.join(os.getcwd(), "stored_results", f"hyperparameter_search_{CASE}.txt"),
+    "w",
+) as f:
+    f.write(" & ".join(column_names) + " \\\\\n")
+    for idx in top_10_idx:
+        print_str = []
+        for key in hp_combinations[idx].keys():
+            print_str.append(hp_combinations[idx][key])
+        f.write(
+            " & ".join(
+                [
+                    (
+                        f"{x:.5f}"
+                        if key in ["mean_score", "std_score"]
+                        else f"{x:.1f}" if isinstance(x, float) else str(x)
+                    )
+                    for key, x in zip(hp_combinations[idx].keys(), print_str)
+                ]
+            )
+            + " \\\\\n"
+        )
+    f.write("\n\n")
