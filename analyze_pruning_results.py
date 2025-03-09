@@ -18,7 +18,7 @@ plt.style.use(os.path.join(os.getcwd(), "AIP_journal.mplstyle"))
 FIGURE_PATH = os.path.join(os.getcwd(), "figures")
 
 # Select the case to analyse
-CASE = "N15B1"
+CASE = "N15C2"
 
 
 if __name__ == "__main__":
