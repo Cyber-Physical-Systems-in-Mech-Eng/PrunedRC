@@ -18,7 +18,7 @@ plt.style.use(os.path.join(os.getcwd(), "AIP_journal.mplstyle"))
 FIGURE_PATH = os.path.join(os.getcwd(), "figures")
 
 # Select the case to analyse
-CASE = "all"
+CASE = "all"  # give a specific case name or "all" to analyse all cases
 
 
 if __name__ == "__main__":
